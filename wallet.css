@@ -1,0 +1,134 @@
+
+    body {
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+        background-color: #113322;
+        color: rgb(163, 218, 199);
+      }
+      h2 {
+        text-align: center;
+        margin: 8px;
+      }
+      .load-wallet div {
+        text-align: center;
+      }
+      .load-wallet input {
+        background-color: rgb(163, 218, 199);
+        text-align: center;
+        padding: 6px;
+      }
+      button {
+        background-color: rgb(163, 218, 199);
+        color: rgb(0, 0, 0);
+        padding: 5px 10px;
+        margin: 5px 10px;
+        border-radius: 5px;
+        outline: 0;
+        font-size: 12;
+        cursor: pointer;
+      }
+      .mono {
+        font-family: monospace;
+      }
+      .center {
+        text-align: center;
+      }
+      .wallet-actions {
+        display: inline-block;
+        width: 300px;
+        margin: 20px;
+        padding: 10px;
+        background-color: rgb(56, 151, 118);
+        border-radius: 5px;
+      }
+      .rootchain-balance {
+        font-size: 12;
+        margin: 8px;
+      }
+      .childchain-balance {
+        font-size: 14;
+        margin: 20px;
+        text-align: left;
+        display: inline-block;
+      }
+      .childchain-balance-header {
+        text-decoration: underline;
+        font-size: 20;
+        text-align: center;
+        margin-bottom: 8px;
+      }
+      .childchain-balance .balance-amount {
+        font-size: 20;
+        font-weight: bold;
+      }
+      .popup-from-address {
+        font-size: 10pt;
+        margin-bottom: 10px;
+      }
+      .popup-input {
+        text-align: right;
+        margin-bottom: 10px;
+      }
+
+      .modal-mask {
+        position: fixed;
+        z-index: 9998;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, .5);
+        display: table;
+        transition: opacity .3s ease;
+      }
+  
+      .modal-wrapper {
+        display: table-cell;
+        vertical-align: middle;
+      }
+  
+      .modal-container {
+        width: 600px;
+        margin: 0px auto;
+        padding: 20px 30px;
+        background-color: rgb(56, 151, 118);
+        border-radius: 2px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
+        transition: all .3s ease;
+        font-family: Helvetica, Arial, sans-serif;
+      }
+  
+      .modal-header h3 {
+        margin-top: 0;
+        color: #42b983;
+      }
+  
+      .modal-body {
+        margin: 20px 0;
+      }
+  
+      .modal-default-button {
+        float: right;
+      }
+  
+      /*
+      * The following styles are auto-applied to elements with
+      * transition="modal" when their visibility is toggled
+      * by Vue.js.
+      *
+      * You can easily play with the modal transition by editing
+      * these styles.
+      */
+  
+      .modal-enter {
+        opacity: 0;
+      }
+  
+      .modal-leave-active {
+        opacity: 0;
+      }
+  
+      .modal-enter .modal-container,
+      .modal-leave-active .modal-container {
+        -webkit-transform: scale(1.1);
+        transform: scale(1.1);
+      }

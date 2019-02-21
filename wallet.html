@@ -1,0 +1,115 @@
+<html>
+
+<body>
+  <script type="text/javascript" src="./src/dist/lightwallet.min.js"></script>
+  <script type="text/javascript" src="./src/dist/omg.js"></script>
+  <script type="text/javascript" src="./src/dist/web3.js"></script>
+  <script type="text/javascript" src="./src/dist/hooked-web3-provider.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  
+  <link rel="stylesheet" type="text/css" href="wallet.css">
+
+<script type="text/x-template" id="modal-template">
+  <transition name="modal">
+    <div class="modal-mask">
+      <div class="modal-wrapper">
+        <div class="modal-container">
+
+          <div class="modal-header">
+            <slot name="header"> header </slot>
+          </div>
+
+          <div class="modal-body">
+            <slot name="body"> body </slot>
+          </div>
+         
+        </div>
+      </div>
+    </div>
+  </transition>
+</script>
+
+<div id="app">
+  <div v-if="loadWallet" class="load-wallet">
+      <h2>Load Wallet</h2>
+      <div>
+        <input v-model="seed" size="80"></input>
+        <button v-on:click="restoreSeed">Restore from Seed</button>
+      </div>
+  </div>
+  <div v-else class="wallet center">
+    <h2>Plasma Wallet</h2>
+    <div class="mono">{{ activeAccount.address }}</div>
+    <div class="rootchain-balance">Rootchain: <span class="mono">{{ activeAccount.rootBalance  / 1.0e18 }}</span> ETH</div>
+    <div>
+      <div class="childchain-balance ">
+        <div style="text-decoration: underline;" class="childchain-balance-header" >Childchain tokens</div>
+        <div v-for="balance in activeAccount.childBalance">
+          <div class="mono">
+            {{ balance.currency }} <span >({{ balance.symbol }})</span>: 
+            <span class="balance-amount">{{ balance.amount }}</span>
+          </div>
+        </div>
+        <div class="center">
+          <button v-on:click="refresh">Refresh</button>
+        </div>
+      </div>
+    </div>
+    <div class="wallet-actions">
+        <button @click="showDeposit">Deposit</button>
+        <button @click="showTransfer">Transfer</button>
+        <button @click="showExit">Exit</button>
+    </div>
+
+    <modal v-if="isShowDeposit" @close="isShowDeposit = false">
+      <h2 slot="header">Deposit</h2>
+      <div slot="body">
+        <div class="popup-from-address">From address: <span class="mono">{{ activeAccount.address }}</span></div>
+        <div style="display: inline-block">
+          <div class="popup-input">Currency (leave blank for ETH): <input v-model="depositCurrency" size="30"></input></div>
+          <div class="popup-input">Amount <input v-model="depositAmount" size="30"></input></div>
+        </div>
+        <div>
+          <button v-on:click="deposit(); showDeposit()">OK</button>
+          <button v-on:click="showDeposit()">Cancel</button>
+        </div>
+      </div>
+    </modal>
+
+    <modal v-if="isShowTransfer" @close="isShowTransfer = false">
+      <h2 slot="header">Transfer</h2>
+      <div slot="body">
+        <div class="popup-from-address">From address: <span class="mono">{{ activeAccount.address }}</span></div>
+        <div style="display: inline-block">
+          <div class="popup-input">Currency (leave blank for ETH): <input v-model="depositCurrency" size="30"></input></div>
+          <div class="popup-input">Amount <input v-model="depositAmount" size="30"></input></div>
+        </div>
+        <div>
+          <button v-on:click="deposit(); showTransfer()">OK</button>
+          <button v-on:click="showTransfer()">Cancel</button>
+        </div>
+      </div>
+    </modal>
+
+    <modal v-if="isShowExit" @close="isShowExit = false">
+      <h2 slot="header">Exit</h2>
+      <div slot="body">
+        <div class="popup-from-address">From address: <span class="mono">{{ activeAccount.address }}</span></div>
+        <div style="display: inline-block">
+          <div class="popup-input">Currency (leave blank for ETH): <input v-model="depositCurrency" size="30"></input></div>
+          <div class="popup-input">Amount <input v-model="depositAmount" size="30"></input></div>
+        </div>
+        <div>
+          <button v-on:click="exit(); showExit()">OK</button>
+          <button v-on:click="showExit()">Cancel</button>
+        </div>
+      </div>
+    </modal>
+
+  </div>
+</div>
+
+</body>
+
+<script src="./src/wallet.js"></script>
+</html>
