@@ -56,52 +56,57 @@
       </div>
     </div>
     <div class="wallet-actions">
-        <button @click="showDeposit">Deposit</button>
-        <button @click="showTransfer">Transfer</button>
-        <button @click="showExit">Exit</button>
+        <button v-on:click="toggleDeposit">Deposit</button>
+        <button v-on:click="toggleTransfer">Transfer</button>
+        <button v-on:click="toggleExit">Exit</button>
     </div>
 
-    <modal v-if="isShowDeposit" @close="isShowDeposit = false">
+    <modal v-if="isShowDeposit">
       <h2 slot="header">Deposit</h2>
       <div slot="body">
         <div class="popup-from-address">From address: <span class="mono">{{ activeAccount.address }}</span></div>
         <div style="display: inline-block">
-          <div class="popup-input">Currency (leave blank for ETH): <input v-model="depositCurrency" size="30"></input></div>
+          <div class="popup-input">Token contract address (blank for ETH): <input v-model="depositCurrency" size="30"></input></div>
           <div class="popup-input">Amount <input v-model="depositAmount" size="30"></input></div>
         </div>
         <div>
-          <button v-on:click="deposit(); showDeposit()">OK</button>
-          <button v-on:click="showDeposit()">Cancel</button>
+          <button v-on:click="deposit(); toggleDeposit()">OK</button>
+          <button v-on:click="toggleDeposit()">Cancel</button>
         </div>
       </div>
     </modal>
 
-    <modal v-if="isShowTransfer" @close="isShowTransfer = false">
+    <modal v-if="isShowTransfer">
       <h2 slot="header">Transfer</h2>
       <div slot="body">
         <div class="popup-from-address">From address: <span class="mono">{{ activeAccount.address }}</span></div>
         <div style="display: inline-block">
-          <div class="popup-input">Currency (leave blank for ETH): <input v-model="depositCurrency" size="30"></input></div>
-          <div class="popup-input">Amount <input v-model="depositAmount" size="30"></input></div>
+            <div class="popup-input">Token contract address (blank for ETH): <input v-model="transferCurrency" size="30"></input></div>
+            <div class="popup-input">To address: <input v-model="transferToAddress" size="30"></input></div>
+            <div class="popup-input">Amount: <input v-model="transferAmount" size="30"></input></div>
         </div>
         <div>
-          <button v-on:click="deposit(); showTransfer()">OK</button>
-          <button v-on:click="showTransfer()">Cancel</button>
+          <button v-on:click="transfer(); toggleTransfer()">OK</button>
+          <button v-on:click="toggleTransfer()">Cancel</button>
         </div>
       </div>
     </modal>
 
-    <modal v-if="isShowExit" @close="isShowExit = false">
+    <modal v-if="isShowExit">
       <h2 slot="header">Exit</h2>
       <div slot="body">
         <div class="popup-from-address">From address: <span class="mono">{{ activeAccount.address }}</span></div>
         <div style="display: inline-block">
-          <div class="popup-input">Currency (leave blank for ETH): <input v-model="depositCurrency" size="30"></input></div>
-          <div class="popup-input">Amount <input v-model="depositAmount" size="30"></input></div>
+          <div class="popup-input">
+            <select id="exitUtxo" v-model="utxoToExit">
+              <option disabled value="">Select a UTXO to exit</option>
+              <option v-for="utxo in utxos" v-bind:value="utxo">{{ utxo.currency }} : {{ utxo.amount }}</option>
+            </select>
+          </div>
         </div>
         <div>
-          <button v-on:click="exit(); showExit()">OK</button>
-          <button v-on:click="showExit()">Cancel</button>
+          <button v-on:click="exit(); toggleExit()">OK</button>
+          <button v-on:click="toggleExit()">Cancel</button>
         </div>
       </div>
     </modal>

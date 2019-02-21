@@ -45,9 +45,14 @@ const vm = new Vue({
     loadWallet: true,
     depositCurrency: '',
     depositAmount: 0,
+    transferToAddress: '',
+    transferCurrency: '',
+    transferAmount: 0,
     isShowDeposit: false,
     isShowExit: false,
-    isShowTransfer: false
+    isShowTransfer: false,
+    utxos: [],
+    utxoToExit: ''
   },
   methods: {
     restoreSeed: function () {
@@ -58,6 +63,7 @@ const vm = new Vue({
 
     refresh: function () {
       showBalance(this.activeAccount)
+      this.getUtxos()
     },
 
     deposit: function () {
@@ -83,14 +89,90 @@ const vm = new Vue({
       }
     },
 
-    showDeposit() {
-      this.isShowDeposit = !this.isShowDeposit;
+    transfer: async function () {
+      const tokenContract = this.transferCurrency || OmgUtil.transaction.ETH_CURRENCY
+      const fromAddr = this.activeAccount.address
+      const toAddr = this.transferToAddress
+      const value = this.transferAmount
+
+      const utxos = await childChain.getUtxos(fromAddr)
+      const utxosToSpend = selectUtxos(utxos, value, tokenContract)
+      if (!utxosToSpend) {
+        alert(`No utxo big enough to cover the amount ${value}`)
+        return
+      }
+
+      const txBody = {
+        inputs: utxosToSpend,
+        outputs: [{
+          owner: toAddr,
+          currency: tokenContract,
+          amount: Number(value)
+        }]
+      }
+
+      if (utxosToSpend[0].amount > value) {
+        // Need to add a 'change' output
+        const CHANGE_AMOUNT = utxosToSpend[0].amount - value
+        txBody.outputs.push({
+          owner: fromAddr,
+          currency: tokenContract,
+          amount: CHANGE_AMOUNT
+        })
+      }
+
+      // Create the unsigned transaction
+      const unsignedTx = childChain.createTransaction(txBody)
+
+      const password = prompt('Enter password', 'Password')
+
+      // Sign it
+      globalKeystore.keyFromPassword(password, async function (err, pwDerivedKey) {
+        if (err) {
+          console.error(err)
+          return
+        }
+        // Decrypt the private key
+        const privateKey = globalKeystore.exportPrivateKey(fromAddr, pwDerivedKey)
+        // Sign the transaction with the private key
+        const signatures = await childChain.signTransaction(unsignedTx, [privateKey])
+        // Build the signed transaction
+        const signedTx = await childChain.buildSignedTransaction(unsignedTx, signatures)
+        // Submit the signed transaction to the childchain
+        const result = await childChain.submitTransaction(signedTx)
+        console.log(`Submitted transaction: ${JSON.stringify(result)}`)
+      })
     },
-    showTransfer() {
-      this.isShowTransfer = !this.isShowTransfer;
+
+    exit: async function () {
+      const fromAddr = this.activeAccount.address
+      const utxoToExit = this.utxoToExit
+      const exitData = await childChain.getExitData(utxoToExit)
+
+      let receipt = await rootChain.startStandardExit(
+        exitData.utxo_pos,
+        exitData.txbytes,
+        exitData.proof,
+        {
+          from: fromAddr
+        }
+      )
+      this.utxoToExit = ''
+      console.log(`RootChain.startExit(): txhash = ${receipt.transactionHash}`)
     },
-    showExit() {
-      this.isShowExit = !this.isShowExit;
+
+    getUtxos: async function () {
+      this.utxos = await childChain.getUtxos(this.activeAccount.address)
+    },
+
+    toggleDeposit () {
+      this.isShowDeposit = !this.isShowDeposit
+    },
+    toggleTransfer () {
+      this.isShowTransfer = !this.isShowTransfer
+    },
+    toggleExit () {
+      this.isShowExit = !this.isShowExit
     }
   }
 })
@@ -134,6 +216,7 @@ function createVault (password, seed) {
       vm.accounts = addresses.map(address => ({ address, rootBalance: 0, childBalance: 0 }))
       vm.activeAccount = vm.accounts[0]
       showBalance(vm.activeAccount)
+      vm.getUtxos()
     })
   })
 }
@@ -161,62 +244,6 @@ async function showBalance (account) {
         }
       }
     })
-  })
-}
-
-async function childchainTransfer () {
-  var fromAddr = document.getElementById('transferFromAddress').value
-  var toAddr = document.getElementById('transferToAddress').value
-  var tokenContract = document.getElementById('transferContractAddress').value
-  tokenContract = tokenContract || OmgUtil.transaction.ETH_CURRENCY
-  var value = document.getElementById('transferValue').value
-
-  const utxos = await childChain.getUtxos(fromAddr)
-  const utxosToSpend = selectUtxos(utxos, value, tokenContract)
-  if (!utxosToSpend) {
-    alert(`No utxo big enough to cover the amount ${value}`)
-    return
-  }
-
-  const txBody = {
-    inputs: utxosToSpend,
-    outputs: [{
-      owner: toAddr,
-      currency: tokenContract,
-      amount: Number(value)
-    }]
-  }
-
-  if (utxosToSpend[0].amount > value) {
-    // Need to add a 'change' output
-    const CHANGE_AMOUNT = utxosToSpend[0].amount - value
-    txBody.outputs.push({
-      owner: fromAddr,
-      currency: tokenContract,
-      amount: CHANGE_AMOUNT
-    })
-  }
-
-  // Create the unsigned transaction
-  const unsignedTx = childChain.createTransaction(txBody)
-
-  const password = prompt('Enter password', 'Password')
-
-  // Sign it
-  globalKeystore.keyFromPassword(password, async function (err, pwDerivedKey) {
-    if (err) {
-      console.error(err)
-      return
-    }
-    // Decrypt the private key
-    const privateKey = globalKeystore.exportPrivateKey(fromAddr, pwDerivedKey)
-    // Sign the transaction with the private key
-    const signatures = await childChain.signTransaction(unsignedTx, [privateKey])
-    // Build the signed transaction
-    const signedTx = await childChain.buildSignedTransaction(unsignedTx, signatures)
-    // Submit the signed transaction to the childchain
-    const result = await childChain.submitTransaction(signedTx)
-    console.log(`Submitted transaction: ${JSON.stringify(result)}`)
   })
 }
 
