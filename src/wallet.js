@@ -1,10 +1,38 @@
 
-const WEB3_PROVIDER_URL = 'https://rinkeby.infura.io/'
-const WATCHER_URL = ''
-const CHILDCHAIN_URL = ''
-const PLASMA_CONTRACT_ADDRESS = '0x5bb7f2492487556e380e0bf960510277cdafd680'
+const localConfig = {
+  web3ProviderUrl: 'http://localhost:8545',
+  watcherUrl: 'http://localhost:7434',
+  childchainUrl: 'http://localhost:9656',
+  plasmaContractAddress: '0x9ea1e52e0e4ef1bf31a09fbf477f2aedf07bf64d'
+}
 
-const erc20InfoAbi = [
+
+const config = localConfig
+
+const erc20MinimalAbi = [
+  {
+    'constant': false,
+    'inputs': [
+      {
+        'name': '_spender',
+        'type': 'address'
+      },
+      {
+        'name': '_value',
+        'type': 'uint256'
+      }
+    ],
+    'name': 'approve',
+    'outputs': [
+      {
+        'name': 'success',
+        'type': 'bool'
+      }
+    ],
+    'payable': false,
+    'stateMutability': 'nonpayable',
+    'type': 'function'
+  },
   {
     'constant': true,
     'inputs': [],
@@ -45,7 +73,8 @@ const vm = new Vue({
     loadWallet: true,
     depositCurrency: '',
     depositAmount: 0,
-    transferToAddress: '',
+    approveDeposit: false,
+    transferToAddress: '0xde5c92dab7562d02cf8beb2ef9a176fb3f5d2750',
     transferCurrency: '',
     transferAmount: 0,
     isShowDeposit: false,
@@ -66,7 +95,7 @@ const vm = new Vue({
       this.getUtxos()
     },
 
-    deposit: function () {
+    deposit: async function () {
       const tokenContract = this.depositCurrency || OmgUtil.transaction.ETH_CURRENCY
       const from = this.activeAccount.address
       const value = this.depositAmount
@@ -82,6 +111,21 @@ const vm = new Vue({
           })
           .catch(console.error)
       } else {
+        if (this.approveDeposit) {
+          this.approveDeposit = false
+          // First approve the plasma contract on the erc20 contract
+          const erc20 = web3.eth.contract(erc20MinimalAbi).at(tokenContract)
+          const sendPromise = Promise.promisify(erc20.approve.sendTransaction)
+
+          try {
+            const tx = await sendPromise(config.plasmaContractAddress, value, { from, gas: 200000 })
+            console.log(`${value} erc20 approved, tx: ${tx}`)
+          } catch (err) {
+            console.error(err)
+            return
+          }
+        }
+
         rootChain.depositToken(depositTx, { from })
           .then(txhash => {
             console.log('txhash: ' + txhash.transactionHash)
@@ -196,13 +240,13 @@ function createVault (password, seed) {
     globalKeystore = keystore
 
     const web3Provider = new HookedWeb3Provider({
-      host: WEB3_PROVIDER_URL,
+      host: config.web3ProviderUrl,
       transaction_signer: globalKeystore
     })
     web3.setProvider(web3Provider)
 
-    rootChain = new RootChain(web3Provider, PLASMA_CONTRACT_ADDRESS)
-    childChain = new ChildChain(WATCHER_URL, CHILDCHAIN_URL)
+    rootChain = new RootChain(web3Provider, config.plasmaContractAddress)
+    childChain = new ChildChain(config.watcherUrl, config.childchainUrl)
 
     globalKeystore.keyFromPassword(password, (err, pwDerivedKey) => {
       if (err) {
@@ -235,7 +279,7 @@ async function showBalance (account) {
       if (balance.currency === OmgUtil.transaction.ETH_CURRENCY) {
         balance.symbol = 'ETH'
       } else {
-        const tokenContract = web3.eth.contract(erc20InfoAbi).at(balance.currency)
+        const tokenContract = web3.eth.contract(erc20MinimalAbi).at(balance.currency)
         try {
           const tokenSymbol = tokenContract.symbol()
           balance.symbol = tokenSymbol
