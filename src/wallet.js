@@ -88,6 +88,7 @@ const vm = new Vue({
     isShowTransfer: false,
     utxos: [],
     utxoToExit: '',
+    transferZeroFee: false,
     logs: []
   },
   methods: {
@@ -178,9 +179,9 @@ const vm = new Vue({
       const value = this.transferAmount
 
       const utxos = await childChain.getUtxos(fromAddr)
-      const utxosToSpend = selectUtxos(utxos, value, tokenContract)
+      const utxosToSpend = selectUtxos(utxos, value, tokenContract, this.transferZeroFee)
       if (!utxosToSpend) {
-        alert(`No utxo big enough to cover the amount ${value}`)
+        this.error(`No utxo big enough to cover the amount ${value}`)
         return
       }
 
@@ -203,6 +204,15 @@ const vm = new Vue({
         })
       }
 
+      if (this.transferZeroFee && utxosToSpend.length > 1) {
+        // The fee input can be returned
+        txBody.outputs.push({
+          owner: fromAddr,
+          currency: utxosToSpend[utxosToSpend.length - 1].currency,
+          amount: utxosToSpend[utxosToSpend.length - 1].amount
+        })
+      }
+
       try {
         // Create the unsigned transaction
         const unsignedTx = childChain.createTransaction(txBody)
@@ -219,7 +229,8 @@ const vm = new Vue({
             // Decrypt the private key
             const privateKey = globalKeystore.exportPrivateKey(fromAddr, pwDerivedKey)
             // Sign the transaction with the private key
-            const signatures = await childChain.signTransaction(unsignedTx, [privateKey])
+            const keys = new Array(txBody.inputs.length).fill(privateKey)
+            const signatures = await childChain.signTransaction(unsignedTx, keys)
             // Build the signed transaction
             const signedTx = await childChain.buildSignedTransaction(unsignedTx, signatures)
             // Submit the signed transaction to the childchain
@@ -329,17 +340,26 @@ async function getBalances (account) {
         const tokenSymbol = tokenContract.symbol()
         balance.symbol = tokenSymbol
       } catch (err) {
+        balance.symbol = 'Unknown ERC20'
       }
     }
   })
 }
 
-function selectUtxos (utxos, amount, currency) {
+function selectUtxos (utxos, amount, currency, includeFee) {
   const correctCurrency = utxos.filter(utxo => utxo.currency === currency)
+  // TODO add utxos
   // Just find the first utxo that can fulfill the amount
   const selected = correctCurrency.find(utxo => utxo.amount >= amount)
   if (selected) {
-    return [selected]
+    const ret = [selected]
+    if (includeFee) {
+      // Find the first ETH utxo (that's not selected)
+      const ethUtxos = utxos.filter(utxo => utxo.currency === OmgUtil.transaction.ETH_CURRENCY)
+      const feeUtxo = ethUtxos.find(utxo => utxo !== selected)
+      ret.push(feeUtxo)
+    }
+    return ret
   }
 }
 
