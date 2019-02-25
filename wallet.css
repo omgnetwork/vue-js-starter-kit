@@ -69,6 +69,41 @@
         margin-bottom: 10px;
       }
 
+      .logs {
+        background-color: rgb(229, 247, 252);
+        padding: 4px 4px;
+        border-radius: 5px;
+      }
+
+      .log {
+        font-size: 9pt;
+        word-wrap: break-word;
+        position: relative;
+        margin: 3px;
+        border-radius: 5px;
+        padding: 4px 8px;    
+        color: black;
+      }
+
+      .info {
+        background-color: rgba(163, 218, 199, 0.5);
+      }
+
+      .error {
+        background-color: rgba(218, 176, 163, 0.5);
+      }
+
+      .log .remove {
+        font-size: 8pt;
+        font-weight: bold;
+        position: absolute;
+        cursor: pointer;
+        color: hsl(0, 0%, 0%);
+        top: 0;
+        right: 0;
+        padding: 0.5em;
+      }
+
       .modal-mask {
         position: fixed;
         z-index: 9998;

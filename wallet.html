@@ -61,6 +61,13 @@
         <button v-on:click="toggleTransfer">Transfer</button>
         <button v-on:click="toggleExit">Exit</button>
     </div>
+    <div v-if="logs.length" class="logs">
+      <div v-for="log in logs">
+          <div class="log" v-bind:class="log.level">
+            {{ log.message }} <span @click='removeLog(log)' class="remove">X</span>
+          </div>
+        </div>
+    </div>
 
     <modal v-if="isShowDeposit">
       <h2 slot="header">Deposit</h2>
