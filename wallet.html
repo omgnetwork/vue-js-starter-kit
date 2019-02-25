@@ -43,13 +43,14 @@
     <div class="mono">{{ activeAccount.address }}</div>
     <div class="rootchain-balance">Rootchain: <span class="mono">{{ activeAccount.rootBalance  / 1.0e18 }}</span> ETH</div>
     <div>
-      <div class="childchain-balance ">
+      <div class="childchain-balances">
         <div style="text-decoration: underline;" class="childchain-balance-header" >Childchain tokens</div>
-        <div v-for="balance in activeAccount.childBalance">
-          <div class="mono">
-            {{ balance.currency }} <span >({{ balance.symbol }})</span>: 
-            <span class="balance-amount">{{ balance.amount }}</span>
-          </div>
+        <div class="childchain-balance" v-for="balance in activeAccount.childBalance">
+            <div class="token">
+              <div class="token-symbol">{{ balance.symbol }}</div> 
+              <div class="token-address mono"> {{ balance.currency }}</div>
+            </div>
+            <div class="amount">{{ balance.amount }}</div>
         </div>
         <div class="center">
           <button v-on:click="refresh">Refresh</button>
@@ -90,10 +91,15 @@
       <div slot="body">
         <div class="popup-from-address">From address: <span class="mono">{{ activeAccount.address }}</span></div>
         <div style="display: inline-block">
-            <div class="popup-input">Token contract address (blank for ETH): <input v-model="transferCurrency" size="30"></input></div>
-            <div class="popup-input">To address: <input v-model="transferToAddress" size="30"></input></div>
-            <div class="popup-input">Amount: <input v-model="transferAmount" size="30"></input></div>
-        </div>
+            <div class="popup-input">Token: 
+                <select id="transferCurrency" v-model="transferCurrency">
+                  <option v-for="balance in activeAccount.childBalance" v-bind:value="balance.currency">{{ balance.symbol != 'Unknown ERC20' ? balance.symbol : balance.currency }}</option>
+                </select>
+            </div>
+            <div class="popup-input">To address: <input v-model="transferToAddress"></input></div>
+            <div class="popup-input">Amount: <input v-model="transferAmount"></input></div>
+            <div class="popup-input">include fee<input type="checkbox" v-model="transferZeroFee"></div>
+          </div>
         <div>
           <button v-on:click="transfer(); toggleTransfer()">OK</button>
           <button v-on:click="toggleTransfer()">Cancel</button>
