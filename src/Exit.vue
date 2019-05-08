@@ -26,7 +26,8 @@
 </template>
 
 <script>
-import modal from "./Modal.vue";
+import modal from "./Modal.vue"
+import omgNetwork from "./omg-network"
 
 export default {
   components: {
@@ -43,30 +44,21 @@ export default {
   data() {
     return {
       utxoToExit: ""
-    };
+    }
   },
 
   methods: {
     exit: async function() {
-      const fromAddr = this.activeAccount.address;
-      const utxoToExit = this.utxoToExit;
+      const fromAddr = this.activeAccount.address
+      const utxoToExit = this.utxoToExit
       try {
-        const exitData = await this.childChain.getExitData(utxoToExit);
-
-        let receipt = await this.rootChain.startStandardExit(
-          Number(exitData.utxo_pos.toString()),
-          exitData.txbytes,
-          exitData.proof,
-          {
-            from: fromAddr
-          }
-        );
-        this.utxoToExit = "";
-        this.$parent.info(`Called RootChain.startExit(): ${receipt.transactionHash}`);
+        const receipt = await omgNetwork.exitUtxo(this.rootChain, this.childChain, fromAddr, utxoToExit)
+        this.utxoToExit = ""
+        this.$parent.info(`Called RootChain.startExit(): ${receipt.transactionHash}`)
       } catch (err) {
-        this.$parent.error(err);
+        this.$parent.error(err)
       }
     }
   }
-};
+}
 </script>

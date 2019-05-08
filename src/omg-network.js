@@ -181,6 +181,17 @@ const omgNetwork = {
     }
 
     return rootChain.depositToken(depositTx, { from })
+  },
+
+  exitUtxo: async function (rootChain, childChain, from, utxoToExit) {
+    const exitData = await childChain.getExitData(utxoToExit)
+
+    return rootChain.startStandardExit(
+      Number(exitData.utxo_pos.toString()),
+      exitData.txbytes,
+      exitData.proof,
+      { from }
+    )
   }
 }
 
