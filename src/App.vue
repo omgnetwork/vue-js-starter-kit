@@ -88,6 +88,7 @@ import config from "./config";
 import ChildChain from "@omisego/omg-js-childchain";
 import RootChain from "@omisego/omg-js-rootchain";
 import OmgUtil from "@omisego/omg-js-util";
+import Web3 from "web3";
 
 export default {
   name: "app",
@@ -149,16 +150,16 @@ export default {
         this.rootChain = new RootChain(window.web3, config.plasmaContractAddress);
         this.childChain = new ChildChain(config.watcherUrl, config.childchainUrl);
 
-        const addresses = await web3.eth.accounts;
+        const addresses = await web3.eth.getAccounts()
         this.accounts = addresses.map(address => ({
           address,
           rootBalance: 0,
           childBalance: 0
         }));
-        this.activeAccount = this.accounts[0];
-        this.refresh();
+        this.activeAccount = this.accounts[0]
+        this.refresh()
       } catch (err) {
-        this.error(err);
+        console.error(err)
       }
     },
 
@@ -179,29 +180,24 @@ export default {
     },
 
     getBalances: async function(account) {
-      web3.eth.getBalance(account.address, (err, ethBalance) => {
-        if (err) {
-          this.error(err);
-          return;
-        }
-        account.rootBalance = ethBalance;
-      });
+      account.rootBalance = await web3.eth.getBalance(account.address)
 
       const childchainBalance = await this.childChain.getBalance(account.address);
-      account.childBalance = childchainBalance;
-      account.childBalance.forEach(balance => {
-        if (balance.currency === OmgUtil.transaction.ETH_CURRENCY) {
-          balance.symbol = "ETH";
-        } else {
-          const tokenContract = web3.eth.contract(erc20abi).at(balance.currency);
-          try {
-            const tokenSymbol = tokenContract.symbol();
-            balance.symbol = tokenSymbol;
-          } catch (err) {
-            balance.symbol = "Unknown ERC20";
+      account.childBalance = await Promise.all(childchainBalance.map(
+        async (balance) => {
+          if (balance.currency === OmgUtil.transaction.ETH_CURRENCY) {
+            balance.symbol = "ETH";
+          } else {
+            const tokenContract = new web3.eth.Contract(erc20abi, balance.currency);
+            try {
+              balance.symbol = await tokenContract.methods.symbol().call()
+            } catch (err) {
+              balance.symbol = "Unknown ERC20";
+            }
           }
+          return balance
         }
-      });
+      ));
     },
 
     toggleDeposit() {
