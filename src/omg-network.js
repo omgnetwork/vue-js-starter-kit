@@ -145,6 +145,42 @@ const omgNetwork = {
         return selected
       }
     }
+  },
+
+  deposit: async function (web3, rootChain, from, value, currency, approveDeposit) {
+    // Create the deposit transaction
+    const depositTx = transaction.encodeDeposit(
+      from,
+      value,
+      currency
+    )
+
+    if (currency === transaction.ETH_CURRENCY) {
+      // ETH deposit
+      return rootChain.depositEth(depositTx, value, { from })
+    }
+
+    // ERC20 token deposit
+    if (approveDeposit) {
+      // First approve the plasma contract on the erc20 contract
+      const erc20 = new web3.eth.Contract(erc20abi, currency)
+      // const approvePromise = Promise.promisify(erc20.approve.sendTransaction)
+
+      // TODO
+      const gasPrice = 1000000
+      const receipt = await erc20.methods.approve(
+        rootChain.plasmaContractAddress,
+        value
+      ).send(
+        { from, gasPrice, gas: 2000000 }
+      )
+      // Wait for the approve tx to be mined
+      console.info(`${value} erc20 approved: ${receipt.transactionHash}. Waiting for confirmation...`)
+      await confirmTransaction(web3, receipt.transactionHash)
+      console.info(`... ${receipt.transactionHash} confirmed.`)
+    }
+
+    return rootChain.depositToken(depositTx, { from })
   }
 }
 
@@ -167,6 +203,68 @@ function signTypedData (web3, signer, data) {
       }
     )
   })
+}
+
+const DEFAULT_INTERVAL = 1000
+const DEFAULT_BLOCKS_TO_WAIT = 1
+
+function confirmTransaction (web3, txnHash, options) {
+  const interval = options && options.interval ? options.interval : DEFAULT_INTERVAL
+  const blocksToWait = options && options.blocksToWait ? options.blocksToWait : DEFAULT_BLOCKS_TO_WAIT
+  var transactionReceiptAsync = async function (txnHash, resolve, reject) {
+    try {
+      var receipt = await web3.eth.getTransactionReceipt(txnHash)
+      if (!receipt) {
+        setTimeout(function () {
+          transactionReceiptAsync(txnHash, resolve, reject)
+        }, interval)
+      } else {
+        if (blocksToWait > 0) {
+          var resolvedReceipt = await receipt
+          if (!resolvedReceipt || !resolvedReceipt.blockNumber) {
+            setTimeout(function () {
+              transactionReceiptAsync(txnHash, resolve, reject)
+            }, interval)
+          } else {
+            try {
+              var block = await web3.eth.getBlock(resolvedReceipt.blockNumber)
+              var current = await web3.eth.getBlock('latest')
+              if (current.number - block.number >= blocksToWait) {
+                var txn = await web3.eth.getTransaction(txnHash)
+                if (txn.blockNumber != null) {
+                  resolve(resolvedReceipt)
+                } else {
+                  reject(new Error('Transaction with hash: ' + txnHash + ' ended up in an uncle block.'))
+                }
+              } else {
+                setTimeout(function () {
+                  transactionReceiptAsync(txnHash, resolve, reject)
+                }, interval)
+              }
+            } catch (e) {
+              setTimeout(function () {
+                transactionReceiptAsync(txnHash, resolve, reject)
+              }, interval)
+            }
+          }
+        } else resolve(receipt)
+      }
+    } catch (e) {
+      reject(e)
+    }
+  }
+
+  if (Array.isArray(txnHash)) {
+    var promises = []
+    txnHash.forEach(function (oneTxHash) {
+      promises.push(confirmTransaction(web3, oneTxHash, options))
+    })
+    return Promise.all(promises)
+  } else {
+    return new Promise(function (resolve, reject) {
+      transactionReceiptAsync(txnHash, resolve, reject)
+    })
+  }
 }
 
 module.exports = omgNetwork

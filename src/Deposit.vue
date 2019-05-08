@@ -29,10 +29,8 @@
 </template>
 
 <script>
-import modal from "./Modal.vue";
-import erc20abi from "./erc20abi";
-import awaitTx from "./awaitTx";
-import * as Promise from 'bluebird'
+import modal from "./Modal.vue"
+import omgNetwork from "./omg-network"
 
 export default {
   components: {
@@ -51,53 +49,30 @@ export default {
       depositCurrency: "",
       depositAmount: 0,
       approveDeposit: false
-    };
+    }
   },
 
   methods: {
     deposit: async function() {
       try {
-        const tokenContract = this.depositCurrency || this.OmgUtil.transaction.ETH_CURRENCY;
-        const from = this.activeAccount.address;
-        const value = this.depositAmount;
+        const tokenContract = this.depositCurrency || this.OmgUtil.transaction.ETH_CURRENCY
+        const from = this.activeAccount.address
+        const value = this.depositAmount
 
-        // Create the deposit transaction
-        const depositTx = this.OmgUtil.transaction.encodeDeposit(
-          from,
-          value,
-          tokenContract
-        );
-
-        if (tokenContract === this.OmgUtil.transaction.ETH_CURRENCY) {
-          const tx = await this.rootChain.depositEth(depositTx, value, { from });
-          this.$parent.info(`Deposited ${value} ETH: ${tx.transactionHash}`);
-        } else {
-          if (this.approveDeposit) {
-            this.approveDeposit = false;
-            // First approve the plasma contract on the erc20 contract
-            const erc20 = web3.eth.contract(erc20abi).at(tokenContract);
-            const approvePromise = Promise.promisify(erc20.approve.sendTransaction);
-
-            // TODO
-            const gasPrice = 1000000
-            const tx = await approvePromise(
-              this.plasmaContractAddress,
-              value,
-              { from, gasPrice, gas: 2000000 }
-            );
-            // Wait for the approve tx to be mined
-            this.$parent.info(`${value} erc20 approved: ${tx}. Waiting for confirmation...`);
-            await awaitTx(web3, tx);
-            this.$parent.info(`... ${tx} confirmed.`);
-          }
-
-          const tx = await this.rootChain.depositToken(depositTx, { from });
-          this.$parent.info(`Deposited ${value} ${tokenContract} tokens: ${tx.transactionHash}`);
-        }
+        const tx = await omgNetwork.deposit(
+          web3, 
+          this.rootChain, 
+          from, 
+          value, 
+          tokenContract,
+          this.approveDeposit
+        )
+        this.approveDeposit = false
+        this.$parent.info(`Deposited ${value} ${tokenContract === this.OmgUtil.transaction.ETH_CURRENCY ? 'ETH' : tokenContract} tokens: ${tx.transactionHash}`)
       } catch (err) {
-        this.$parent.error(err);
+        this.$parent.error(err)
       }
     }
   }
-};
+}
 </script>
