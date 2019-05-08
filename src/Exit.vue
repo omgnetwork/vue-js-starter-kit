@@ -27,9 +27,6 @@
 
 <script>
 import modal from "./Modal.vue";
-import erc20abi from "./erc20abi";
-import awaitTx from "./awaitTx";
-import * as Promise from "bluebird";
 
 export default {
   components: {
