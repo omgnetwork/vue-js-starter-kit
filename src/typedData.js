@@ -1,7 +1,6 @@
 const domainSpec = [
   { name: 'name', type: 'string' },
   { name: 'version', type: 'string' },
-  { name: 'chainId', type: 'uint256' },
   { name: 'verifyingContract', type: 'address' },
   { name: 'salt', type: 'bytes32' }
 ]
@@ -26,15 +25,14 @@ const inputSpec = [
 
 const outputSpec = [
   { name: 'owner', type: 'address' },
-  { name: 'token', type: 'address' },
+  { name: 'currency', type: 'address' },
   { name: 'amount', type: 'uint256' }
 ]
 
 const domainData = {
   name: 'OMG Network',
   version: '1',
-  chainId: 1,
-  verifyingContract: '0x44de0ec539b8c4a4b530c78620fe8320167f2f74',
+  verifyingContract: '0x2f384cbfa8c0a8b48acba276c58cb859a6232d2f',
   salt: '0xfad5c7f626d80f9256ef01929f3beb96e058b8b4b0e3fe52d84f054c0e2a7a83'
 }
 
@@ -49,14 +47,12 @@ const typedData = {
   primaryType: 'Transaction'
 }
 
-function getTypedData (web3, chainId, tx) {
-  domainData.chainId = chainId
-
+function getTypedData (tx) {
   // Outputs use 'token' instead of 'currency', may be changed in the future
   const tokenOutputs = tx.outputs.map(o => ({
     owner: o.owner,
-    token: o.currency,
-    amount: o.amount
+    currency: o.currency,
+    amount: o.amount.toString()
   }))
 
   typedData.message = {

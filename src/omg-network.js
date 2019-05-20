@@ -63,7 +63,7 @@ const omgNetwork = {
       outputs: [{
         owner: to,
         currency,
-        amount: Number(amount)
+        amount: amount.toString()
       }]
     }
 
@@ -91,8 +91,7 @@ const omgNetwork = {
     const unsignedTx = childChain.createTransaction(txBody)
     const tx = transaction.decode(unsignedTx)
 
-    const chainId = await web3.eth.net.getId()
-    const typedData = getTypedData(web3, chainId, tx)
+    const typedData = getTypedData(tx)
 
     // We should really sign each input separately but in this we know that they're all
     // from the same address, so we can sign once and use that signature for each input.
