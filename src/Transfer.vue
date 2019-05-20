@@ -45,7 +45,8 @@ export default {
   props: {
     OmgUtil: Object,
     activeAccount: Object,
-    childChain: Object
+    childChain: Object,
+    rootChain: Object
   },
 
   data() {
@@ -69,9 +70,10 @@ export default {
           web3,
           this.childChain,
           fromAddr, 
-          toAddr, 
+          toAddr,
           value, 
-          tokenContract
+          tokenContract,
+          this.rootChain.plasmaContractAddress
         )
         this.$parent.info(`Submitted transaction: ${JSON.stringify(result)}`)
       } catch (err) {

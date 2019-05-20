@@ -64,6 +64,7 @@
         v-on:close="toggleTransfer()"
         v-bind:OmgUtil="OmgUtil"
         v-bind:childChain="childChain"
+        v-bind:rootChain="rootChain"
         v-bind:activeAccount="activeAccount"
       />
 

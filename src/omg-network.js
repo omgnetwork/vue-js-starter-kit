@@ -2,7 +2,6 @@
 const erc20abi = require('human-standard-token-abi')
 const { transaction } = require('@omisego/omg-js-util')
 const numberToBN = require('number-to-bn')
-const getTypedData = require('./typedData')
 
 const omgNetwork = {
   getAccounts: async function (web3) {
@@ -45,7 +44,7 @@ const omgNetwork = {
     ))
   },
 
-  transfer: async function (web3, childChain, from, to, amount, currency) {
+  transfer: async function (web3, childChain, from, to, amount, currency, contract) {
     const transferZeroFee = currency !== transaction.ETH_CURRENCY
     const utxos = await childChain.getUtxos(from)
     const utxosToSpend = this.selectUtxos(
@@ -87,11 +86,8 @@ const omgNetwork = {
       })
     }
 
-    // Create the unsigned transaction
-    const unsignedTx = childChain.createTransaction(txBody)
-    const tx = transaction.decode(unsignedTx)
-
-    const typedData = getTypedData(tx)
+    // Get the transaction data
+    const typedData = transaction.getTypedData(txBody, contract)
 
     // We should really sign each input separately but in this we know that they're all
     // from the same address, so we can sign once and use that signature for each input.
@@ -101,12 +97,12 @@ const omgNetwork = {
     const signature = await signTypedData(
       web3,
       web3.utils.toChecksumAddress(from),
-      typedData
+      JSON.stringify(typedData)
     )
     const sigs = new Array(utxosToSpend.length).fill(signature)
 
     // Build the signed transaction
-    const signedTx = await childChain.buildSignedTransaction(unsignedTx, sigs)
+    const signedTx = childChain.buildSignedTransaction(typedData, sigs)
     // Submit the signed transaction to the childchain
     return childChain.submitTransaction(signedTx)
   },
