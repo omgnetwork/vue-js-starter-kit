@@ -191,24 +191,7 @@ const omgNetwork = {
 }
 
 function signTypedData (web3, signer, data) {
-  return new Promise((resolve, reject) => {
-    web3.currentProvider.sendAsync(
-      {
-        method: 'eth_signTypedData_v3',
-        params: [signer, data],
-        from: signer
-      },
-      (err, result) => {
-        if (err) {
-          reject(err)
-        } else if (result.error) {
-          reject(result.error.message)
-        } else {
-          resolve(result.result)
-        }
-      }
-    )
-  })
+  return web3.currentProvider.send('eth_signTypedData_v3', [signer, data])
 }
 
 const DEFAULT_INTERVAL = 1000

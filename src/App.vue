@@ -96,9 +96,11 @@ import RootChain from "@omisego/omg-js-rootchain"
 import OmgUtil from "@omisego/omg-js-util"
 import Web3 from "web3"
 
+const web3Options = { transactionConfirmationBlocks: 1 }
+
 async function initWeb3() {
   if (ethereum) {
-    web3 = new Web3(ethereum)
+    web3 = new Web3(ethereum, null, web3Options)
     try {
       // Request account access
       await ethereum.enable()
@@ -108,7 +110,7 @@ async function initWeb3() {
       console.error(err)
     }
   } else if (web3) {
-    web3 = new Web3(web3.currentProvider)
+    web3 = new Web3(web3.currentProvider, null, web3Options)
     return true
   }
   // No web3...
