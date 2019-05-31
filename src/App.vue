@@ -18,7 +18,7 @@
             <div class="md-layout-item">
               <b>Childchain Balance:</b> 
               <div v-for="balance in activeAccount.childBalance">
-                <span class="balance">{{ balance.amount }} {{ balance.symbol }}</span>
+                <span class="balance">{{ balance.amount }} {{ balance.symbol }} {{balance.currency}}</span>
               </div>
             </div>
             <div class="md-layout-item">
@@ -259,40 +259,10 @@ h2 {
   margin: 8px;
 } 
 
-.mono {
-  font-family: monospace;
-}
-.center {
-  text-align: center;
-}
-
-.rootchain-balance {
-  font-size: 12;
-  margin: 8px;
-}
-
 .childchain-balance-header {
   font-size: 20;
   text-align: center;
   margin-bottom: 8px;
-}
-
-.childchain-balance .token {
-  display: inline-block;
-  text-align: right;
-}
-.childchain-balance .token-symbol {
-  font-size: 20;
-}
-.childchain-balance .token-address {
-  font-size: 10;
-  font-weight: lighter;
-}
-.childchain-balance .amount {
-  font-size: 20;
-  font-weight: bold;
-  display: inline-block;
-  padding-left: 20px;
 }
 
 .transaction {
@@ -330,38 +300,4 @@ h2 {
   width: 200px;
 }
 
-.logs {
-  background-color: rgb(229, 247, 252);
-  padding: 4px 4px;
-  border-radius: 5px;
-}
-
-.log {
-  font-size: 9pt;
-  word-wrap: break-word;
-  position: relative;
-  margin: 3px;
-  border-radius: 5px;
-  padding: 4px 8px;
-  color: black;
-}
-
-.info {
-  background-color: rgba(163, 218, 199, 0.5);
-}
-
-.error {
-  background-color: rgba(218, 176, 163, 0.5);
-}
-
-.log .remove {
-  font-size: 8pt;
-  font-weight: bold;
-  position: absolute;
-  cursor: pointer;
-  color: hsl(0, 0%, 0%);
-  top: 0;
-  right: 0;
-  padding: 0.5em;
-}
 </style>
