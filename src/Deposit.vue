@@ -21,8 +21,8 @@
         </div>
       </div>
       <div>
-        <button v-on:click="deposit(); $emit('close')">OK</button>
-        <button v-on:click="$emit('close')">Cancel</button>
+        <md-button v-on:click="deposit(); $emit('close')" class="md-raised">Ok</md-button>
+        <md-button v-on:click="$emit('close')" class="md-raised">Cancel</md-button>
       </div>
     </div>
   </modal>

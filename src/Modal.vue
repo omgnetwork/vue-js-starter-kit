@@ -40,7 +40,7 @@
   width: 600px;
   margin: 0px auto;
   padding: 20px 30px;
-  background-color: rgb(45, 66, 110);
+  background-color: white;
   border-radius: 5px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
   transition: all .3s ease;
