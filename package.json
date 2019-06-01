@@ -1,7 +1,7 @@
 {
-  "name": "vue-wallet",
-  "description": "A Vue.js project",
-  "version": "1.0.0",
+  "name": "vue-js-starter-kit",
+  "description": "OMG Starter kit in Vue.js",
+  "version": "1.0.0-v0.2",
   "author": "Kevin Sullivan <kevsul@gmail.com>",
   "license": "MIT",
   "private": true,
