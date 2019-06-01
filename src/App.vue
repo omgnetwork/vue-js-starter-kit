@@ -1,54 +1,69 @@
 <template>
   <div id="app">
-    <div v-if="hasWeb3" class="wallet center">
-      <h2>OmiseGO Wallet</h2>
-      <div class="mono">{{ activeAccount.address }}</div>
-      <div class="rootchain-balance">
-        Rootchain:
-        <span class="mono">{{ activeAccount.rootBalance / 1.0e18 }}</span> ETH
-      </div>
-      <div>
-        <div class="childchain-balances">
-          <div
-            style="text-decoration: underline;"
-            class="childchain-balance-header"
-          >Childchain tokens</div>
-          <div class="childchain-balance" v-for="balance in activeAccount.childBalance">
-            <div class="token">
-              <div class="token-symbol">{{ balance.symbol }}</div>
-              <div class="token-address mono">{{ balance.currency }}</div>
+    <div v-if="hasWeb3">
+      <div class="md-layout md-gutter">
+        <div class="md-layout-item md-layout md-gutter">
+        <img class="logo" src='../assets/OmiseGO_Logo.svg' />
+          <md-card>
+            <md-card-header>
+              <md-card-header-text>
+                <div class="md-title">Account</div>
+              </md-card-header-text>
+            </md-card-header>
+            <div class="md-layout-item"><b>Wallet Address:</b> {{ activeAccount.address }} </div>
+            <div class="md-layout-item">
+              <b>Rootchain Balance:</b>
+                <span class="balance">{{ activeAccount.rootBalance / 1.0e18 }} ETH</span> 
             </div>
-            <div class="amount">{{ balance.amount }}</div>
-          </div>
-          <div class="center">
-            <button v-on:click="refresh">Refresh</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="wallet-actions">
-        <button v-on:click="toggleDeposit">Deposit</button>
-        <button v-on:click="toggleTransfer">Transfer</button>
-        <button v-on:click="toggleExit">Exit</button>
-      </div>
-
-      <EventLog ref="eventLog"/>
-
-      <div v-if="transactions.length">
-        <div class="transactions-header">Transactions</div>
-        <div class="transactions">
-          <div v-for="transaction in transactions">
-            <div class="transaction">
-              <span class="date">{{ new Date(transaction.block.timestamp * 1000).toLocaleString() }}</span>
-              <span class="txhash">{{ transaction.txhash }}</span>
-              <div class="result" v-for="result in transaction.results">
-                <div class="txhash">{{ result.currency }}</div>
-                <div class="txhash">{{ result.value }}</div>
+            <div class="md-layout-item">
+              <b>Childchain Balance:</b> 
+              <div v-for="balance in activeAccount.childBalance">
+                <span class="balance">{{ balance.amount }} {{ balance.symbol }} {{balance.currency}}</span>
               </div>
             </div>
-          </div>
+            <div class="md-layout-item">
+              <md-button class="md-raised" v-on:click="refresh">Refresh Balance</md-button>
+            </div>
+          </md-card>
+          <md-card>
+            <md-card-header>
+              <md-card-header-text>
+                <div class="md-title">Actions</div>
+              </md-card-header-text>
+            </md-card-header>
+            <div>
+              <div class="md-layout md-gutter md-alignment-center-center"> 
+                <md-button v-on:click="toggleDeposit" class="md-raised md-primary action">Deposit</md-button>
+                <md-button v-on:click="toggleTransfer" class="md-raised md-primary action">Transfer</md-button>
+                <md-button v-on:click="toggleExit" class="md-raised md-primary action">Exit</md-button>
+              </div>
+            </div>
+          </md-card>
+        </div>
+
+        <div class="md-layout-item md-layout md-gutter">
+          <md-card>
+            <div v-if="transactions.length">
+              <md-card-header>
+                <md-card-header-text>
+                  <div class="md-title">Transaction History</div>
+                </md-card-header-text>
+              </md-card-header>
+              <md-content class="md-scrollbar">
+                <div class="md-layout-item" v-for="transaction in transactions">
+                  <span class="date"><b>Date:</b> {{ new Date(transaction.block.timestamp * 1000).toLocaleString() }}</span>
+                  <span class="txhash"><b>Transaction Hash:</b> {{ transaction.txhash }}</span>
+                  <div class="result" v-for="result in transaction.results">
+                    <div class="txhash"><b>Currency:</b> {{ result.currency }}</div>
+                    <div class="txhash"><b>Value:</b> {{ result.value }}</div>
+                  </div>
+                </div>
+              </md-content>
+            </div>
+          </md-card>
         </div>
       </div>
+      <EventLog ref="eventLog"/>
 
       <Deposit
         v-if="isShowDeposit"
@@ -194,89 +209,57 @@ export default {
 </script>
 
 <style>
+
+span.balance {
+  display: block;
+
+}
+
+img.logo {
+  height: 60px;
+  margin-left: 20px;
+  margin-top: 20px;
+}
+
+.md-layout-item { 
+  width: 100%; 
+  height: 100%; 
+  display: block; 
+  margin: 20px;
+  content: " "; 
+}
+
+.md-content {
+    max-width: 600px;
+    max-height: 700px;
+    overflow: auto;
+  }
+
+.md-card-header-text > .md-title{
+  font-weight: 900;
+}
+
+.action {
+  margin: 20px;
+  background-color: blue;
+  color: white;
+  font-weight: 500;
+}
+
+.md-card {
+  margin: 20px;
+}
+
 body {
   font-family: Verdana, Geneva, Tahoma, sans-serif;
-  background-color: rgb(45, 66, 110);
-  color: white;
+  color: black;
 }
 h2 {
   text-align: center;
   margin: 8px;
-}
-button {
-  background-color: rgb(160, 181, 240);
-  color: rgb(0, 0, 0);
-  padding: 5px 10px;
-  margin: 5px 10px;
-  border-radius: 5px;
-  outline: 0;
-  font-size: 12;
-  cursor: pointer;
-}
-.mono {
-  font-family: monospace;
-}
-.center {
-  text-align: center;
-}
-.wallet-actions {
-  display: inline-block;
-  width: 300px;
-  margin: 20px;
-  padding: 10px;
-  background-color: #3a62c5;
-  border-radius: 5px;
-}
-.rootchain-balance {
-  font-size: 12;
-  margin: 8px;
-}
-.childchain-balances {
-  font-size: 14;
-  margin: 20px;
-  width: 600px;
-  text-align: left;
-  display: inline-block;
-}
+} 
+
 .childchain-balance-header {
-  text-decoration: underline;
-  font-size: 20;
-  text-align: center;
-  margin-bottom: 8px;
-}
-.childchain-balance {
-  padding: 6px;
-  background-color: #3a62c5;
-  border-radius: 5px;
-  margin: 8px;
-}
-.childchain-balance .token {
-  display: inline-block;
-  text-align: right;
-}
-.childchain-balance .token-symbol {
-  font-size: 20;
-}
-.childchain-balance .token-address {
-  font-size: 10;
-  font-weight: lighter;
-}
-.childchain-balance .amount {
-  font-size: 20;
-  font-weight: bold;
-  display: inline-block;
-  padding-left: 20px;
-}
-
-.transactions {
-  padding: 6px;
-  background-color: #3a62c5;
-  border-radius: 5px;
-  margin: 8px;
-}
-
-.transactions-header {
-  text-decoration: underline;
   font-size: 20;
   text-align: center;
   margin-bottom: 8px;
@@ -284,6 +267,10 @@ button {
 
 .transaction {
   padding: 6px;
+}
+
+.txhash {
+  display: block;
 }
 
 .transaction .txhash {
@@ -313,38 +300,4 @@ button {
   width: 200px;
 }
 
-.logs {
-  background-color: rgb(229, 247, 252);
-  padding: 4px 4px;
-  border-radius: 5px;
-}
-
-.log {
-  font-size: 9pt;
-  word-wrap: break-word;
-  position: relative;
-  margin: 3px;
-  border-radius: 5px;
-  padding: 4px 8px;
-  color: black;
-}
-
-.info {
-  background-color: rgba(163, 218, 199, 0.5);
-}
-
-.error {
-  background-color: rgba(218, 176, 163, 0.5);
-}
-
-.log .remove {
-  font-size: 8pt;
-  font-weight: bold;
-  position: absolute;
-  cursor: pointer;
-  color: hsl(0, 0%, 0%);
-  top: 0;
-  right: 0;
-  padding: 0.5em;
-}
 </style>
