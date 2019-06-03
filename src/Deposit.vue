@@ -24,7 +24,7 @@ limitations under the License.
       </div>
       <div style="display: inline-block">
         <div class="popup-input">
-          Token contract address (blank for ETH):
+          Token contract address (blank for wei):
           <input v-model="depositCurrency" size="30">
         </div>
         <div class="popup-input">
@@ -84,7 +84,7 @@ export default {
           this.approveDeposit
         )
         this.approveDeposit = false
-        this.$parent.info(`Deposited ${value} ${tokenContract === this.OmgUtil.transaction.ETH_CURRENCY ? 'ETH' : tokenContract} tokens: ${tx.transactionHash}`)
+        this.$parent.info(`Deposited ${value} ${tokenContract === this.OmgUtil.transaction.ETH_CURRENCY ? 'wei' : tokenContract} tokens: ${tx.transactionHash}`)
       } catch (err) {
         this.$parent.error(err)
       }

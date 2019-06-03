@@ -45,7 +45,7 @@ const omgNetwork = {
     account.childBalance = await Promise.all(childchainBalance.map(
       async (balance) => {
         if (balance.currency === transaction.ETH_CURRENCY) {
-          balance.symbol = 'ETH'
+          balance.symbol = 'wei'
         } else {
           const tokenContract = new web3.eth.Contract(erc20abi, balance.currency)
           try {
