@@ -29,7 +29,7 @@ limitations under the License.
             <div class="md-layout-item"><b>Wallet Address:</b> {{ activeAccount.address }} </div>
             <div class="md-layout-item">
               <b>Rootchain Balance:</b>
-                <span class="balance">{{ activeAccount.rootBalance / 1.0e18 }} ETH</span> 
+                <span class="balance">{{ activeAccount.rootBalance }} wei</span> 
             </div>
             <div class="md-layout-item">
               <b>Childchain Balance:</b> 
